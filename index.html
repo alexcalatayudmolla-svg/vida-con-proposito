@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Vida V3</title>
+
+<style>
+body{font-family:-apple-system;margin:0;background:#f4f4f4}
+.container{padding:16px}
+.card{background:white;padding:16px;margin-bottom:12px;border-radius:12px}
+h1{margin-bottom:10px}
+.bar{height:10px;border-radius:6px;margin-top:6px}
+.green{background:#4CAF50}
+.orange{background:#FF9800}
+.red{background:#F44336}
+button{padding:8px;border:none;border-radius:8px;background:black;color:white;margin:4px}
+input{padding:6px;width:100%;margin-top:6px}
+.alert{font-size:14px;margin-top:6px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>Dashboard</h1>
+
+<div class="card">Tatuaje<div id="tatuaje" class="bar"></div></div>
+<div class="card">Salud<div id="salud" class="bar"></div></div>
+<div class="card">Artcore<div id="artcore" class="bar"></div></div>
+<div class="card">Personal<div id="personal" class="bar"></div></div>
+
+<div class="card">
+<h2>Salud</h2>
+Gym: <button onclick="inc('gym')">+</button> <span id="gym"></span>/3<br>
+Dieta: <button onclick="inc('dieta')">+</button> <span id="dieta"></span>/6<br>
+Sueño: <button onclick="inc('sueno')">+</button> <span id="sueno"></span>/7<br>
+Redes OK: <button onclick="inc('redes')">+</button> <span id="redes"></span>/7<br>
+</div>
+
+<div class="card">
+<h2>Tatuaje</h2>
+Clientes: <button onclick="inc('clientes')">+</button> <span id="clientes"></span><br>
+Diseños: <button onclick="inc('diseno')">+</button> <span id="diseno"></span>/2<br>
+Facturas: <button onclick="inc('facturas')">+</button> <span id="facturas"></span>/1<br>
+</div>
+
+<div class="card">
+<h2>Artcore</h2>
+Gestión: <button onclick="inc('gestion')">+</button> <span id="gestion"></span>/1<br>
+Pintura: <button onclick="inc('pintura')">+</button> <span id="pintura"></span>/4<br>
+</div>
+
+<div class="card">
+<h2>Personal</h2>
+Guitarra: <button onclick="inc('guitarra')">+</button> <span id="guitarra"></span><br>
+Meditación: <button onclick="inc('meditacion')">+</button> <span id="meditacion"></span><br>
+Lectura: <button onclick="inc('lectura')">+</button> <span id="lectura"></span><br>
+</div>
+
+<div class="card">
+<h2>Economía</h2>
+
+Ingreso: <input id="ingreso"><button onclick="addIngreso()">+</button>
+Gasto: <input id="gasto"><button onclick="addGasto()">+</button>
+
+<select id="tipo">
+<option>fijo</option>
+<option>comida</option>
+<option>libre</option>
+<option>ahorro</option>
+</select>
+
+<p id="eco"></p>
+<p id="objetivo"></p>
+
+</div>
+
+<div class="card">
+<h2>Alertas</h2>
+<div id="alertas"></div>
+</div>
+
+</div>
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("vidaV3")) || {
+gym:0,dieta:0,sueno:0,redes:0,
+clientes:0,diseno:0,facturas:0,
+gestion:0,pintura:0,
+guitarra:0,meditacion:0,lectura:0,
+ingresos:0,gastos:{fijo:0,comida:0,libre:0,ahorro:0},
+week: new Date().getWeek()
+};
+
+Date.prototype.getWeek = function(){
+var d=new Date(Date.UTC(this.getFullYear(),this.getMonth(),this.getDate()));
+var dayNum=d.getUTCDay()||7;
+d.setUTCDate(d.getUTCDate()+4-dayNum);
+var yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+return Math.ceil((((d-yearStart)/86400000)+1)/7)
+};
+
+function checkWeek(){
+let now=new Date().getWeek();
+if(now!==data.week){
+data = {...data,
+gym:0,dieta:0,sueno:0,redes:0,
+clientes:0,diseno:0,facturas:0,
+gestion:0,pintura:0,
+guitarra:0,meditacion:0,lectura:0,
+week:now};
+}
+}
+
+function save(){
+localStorage.setItem("vidaV3",JSON.stringify(data));
+update();
+}
+
+function inc(k){data[k]++;save();}
+
+function addIngreso(){
+let v=parseFloat(ingreso.value);
+if(v){data.ingresos+=v;save();}
+}
+
+function addGasto(){
+let v=parseFloat(gasto.value);
+let t=tipo.value;
+if(v){data.gastos[t]+=v;save();}
+}
+
+function color(s){
+if(s>0.7)return"green";
+if(s>0.4)return"orange";
+return"red";
+}
+
+function update(){
+
+checkWeek();
+
+let salud=(data.gym/3 + data.dieta/6 + data.sueno/7 + data.redes/7)/4;
+let tatuaje=(data.diseno/2 + data.facturas/1)/2;
+let artcore=(data.gestion/1 + data.pintura/4)/2;
+let personal=(data.guitarra/5 + data.meditacion/5 + data.lectura/5)/3;
+
+document.getElementById("salud").className="bar "+color(salud);
+document.getElementById("tatuaje").className="bar "+color(tatuaje);
+document.getElementById("artcore").className="bar "+color(artcore);
+document.getElementById("personal").className="bar "+color(personal);
+
+gym.innerText=data.gym;
+dieta.innerText=data.dieta;
+sueno.innerText=data.sueno;
+redes.innerText=data.redes;
+
+clientes.innerText=data.clientes;
+diseno.innerText=data.diseno;
+facturas.innerText=data.facturas;
+
+gestion.innerText=data.gestion;
+pintura.innerText=data.pintura;
+
+guitarra.innerText=data.guitarra;
+meditacion.innerText=data.meditacion;
+lectura.innerText=data.lectura;
+
+let totalGastos = data.gastos.fijo + data.gastos.comida + data.gastos.libre + data.gastos.ahorro;
+eco.innerText = "Balance: " + (data.ingresos - totalGastos) + "€";
+
+objetivo.innerText = "Faltan " + (10000 - data.ingresos) + "€ para 10k";
+
+let alertText="";
+
+if(data.gym<2) alertText+="⚠️ Poco gym<br>";
+if(data.dieta<4) alertText+="⚠️ Dieta floja<br>";
+if(data.redes<5) alertText+="⚠️ Redes mal controladas<br>";
+if(data.pintura<2) alertText+="⚠️ Artcore parado<br>";
+if(totalGastos>data.ingresos) alertText+="⚠️ Gastando más de lo que ganas<br>";
+
+alertas.innerHTML=alertText;
+
+}
+
+update();
+
+</script>
+
+</body>
+</html>
